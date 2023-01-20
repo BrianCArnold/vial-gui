@@ -27,7 +27,7 @@ from editor.rgb_configurator import RGBConfigurator
 from tabbed_keycodes import TabbedKeycodes
 from editor.tap_dance import TapDance
 from unlocker import Unlocker
-from util import tr, EXAMPLE_KEYBOARDS, KeycodeDisplay
+from util import tr, EXAMPLE_KEYBOARDS, KeycodeDisplay, EXAMPLE_KEYBOARD_PREFIX
 from vial_device import VialKeyboard
 from editor.matrix_test import MatrixTest
 
@@ -172,12 +172,15 @@ class MainWindow(QMainWindow):
             file_menu.addAction(exit_act)
 
         keyboard_unlock_act = QAction(tr("MenuSecurity", "Unlock"), self)
+        keyboard_unlock_act.setShortcut("Ctrl+U")
         keyboard_unlock_act.triggered.connect(self.unlock_keyboard)
 
         keyboard_lock_act = QAction(tr("MenuSecurity", "Lock"), self)
+        keyboard_lock_act.setShortcut("Ctrl+L")
         keyboard_lock_act.triggered.connect(self.lock_keyboard)
 
         keyboard_reset_act = QAction(tr("MenuSecurity", "Reboot to bootloader"), self)
+        keyboard_reset_act.setShortcut("Ctrl+B")
         keyboard_reset_act.triggered.connect(self.reboot_to_bootloader)
 
         keyboard_layout_menu = self.menuBar().addMenu(tr("Menu", "Keyboard layout"))
@@ -276,10 +279,11 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "", "Unsupported protocol version!\n"
                                           "Please download latest Vial from https://get.vial.today/")
 
-        if isinstance(self.autorefresh.current_device, VialKeyboard) \
-                and self.autorefresh.current_device.keyboard.keyboard_id in EXAMPLE_KEYBOARDS:
-            QMessageBox.warning(self, "", "An example keyboard UID was detected.\n"
-                                          "Please change your keyboard UID to be unique before you ship!")
+        if isinstance(self.autorefresh.current_device, VialKeyboard):
+            keyboard_id = self.autorefresh.current_device.keyboard.keyboard_id
+            if (keyboard_id in EXAMPLE_KEYBOARDS) or ((keyboard_id & 0xFFFFFFFFFFFFFF) == EXAMPLE_KEYBOARD_PREFIX):
+                QMessageBox.warning(self, "", "An example keyboard UID was detected.\n"
+                                              "Please change your keyboard UID to be unique before you ship!")
 
         self.rebuild()
         self.refresh_tabs()
